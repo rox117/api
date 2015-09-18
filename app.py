@@ -1,5 +1,5 @@
 #!flask/bin/python
-from flask import Flask, jsonify
+from flask import Flask, jsonify,url_for
 from flask import make_response,abort,request
 
 app = Flask(__name__)
@@ -18,6 +18,14 @@ tasks = [
         'done': False
     }
 ]
+def make_public_task(task):
+    new_task = {}
+    for field in task:
+        if field == 'id':
+            new_task['uri'] = url_for('get_task', task_id=task['id'], _external=True)
+        else:
+            new_task[field] = task[field]
+    return new_task
 
 @app.route('/todo/api/v1.0/tasks', methods=['GET'])
 def get_tasks():
@@ -49,7 +57,7 @@ def create_task():
     return jsonify({'task':task})
 
 
-@app.route ('/todo/api/v1.0/tasks/<int:task_id',methods=['PUT'])
+@app.route ('/todo/api/v1.0/tasks/<int:task_id>',methods=['PUT'])
 def update_task(task_id):
     task=[task for task in tasks if task['id']==task_id]
     if len(task)==0:
@@ -58,7 +66,7 @@ def update_task(task_id):
         abort(400)
     if 'title' in request.json and type(request.json['title'])!=unicode:
         abort(400)
-     if 'description' in request.json and type(request.json['description']) is not unicode:
+    if 'description' in request.json and type(request.json['description']) is not unicode:
         abort(400)
     if 'done' in request.json and type(request.json['done']) is not bool:
         abort(400)
